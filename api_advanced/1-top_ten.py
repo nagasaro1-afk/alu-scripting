@@ -10,21 +10,19 @@ def top_ten(subreddit):
         "https://old.reddit.com/r/{}/hot.json?limit=10",
         "https://api.reddit.com/r/{}/hot?limit=10",
     ]
-    agents = [
-        "linux:alu.scripting.api:v1.0 (by /u/nagasaro1)",
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/120.0 Safari/537.36",
-    ]
+    headers = {"User-Agent": "linux:alu.scripting.api:v1.0 (by /u/nagasaro1)"}
     for url in urls:
-        for agent in agents:
-            try:
-                response = requests.get(
-                    url.format(subreddit), headers={"User-Agent": agent},
-                    allow_redirects=False, timeout=10)
-                posts = response.json()["data"]["children"]
-                titles = [post["data"]["title"] for post in posts[:10]]
-            except Exception:
+        try:
+            response = requests.get(url.format(subreddit), headers=headers,
+                                    allow_redirects=False)
+            code = getattr(response, "status_code", 200)
+            if isinstance(code, int) and code != 200:
                 continue
+            posts = response.json()["data"]["children"]
+            titles = [post["data"]["title"] for post in posts[:10]]
+        except Exception:
+            continue
+        if titles:
             for title in titles:
                 print(title)
             return
